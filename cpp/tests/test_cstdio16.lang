@@ -1,0 +1,32 @@
+@ "cstdio16.lang"
+@ "ffi.lang"
+@ "tests/color.lang"
+
+ok : int <- 1
+
+? cstdio16.lib == "libc.so.6" { } { ok <- 0 }
+? cstdio16.functions.puts.symbol == "puts" { } { ok <- 0 }
+
+subset = {
+    lib : string = cstdio16.lib
+    abi : string = cstdio16.abi
+    functions = {
+        putchar = cstdio16.functions.putchar
+        puts = cstdio16.functions.puts
+        remove = cstdio16.functions.remove
+        rename = cstdio16.functions.rename
+    }
+}
+
+IO = bind_lib(subset)
+? IO.putchar(65) == 65 { } { ok <- 0 }
+? IO.puts("cstdio16 subset") != -1 { } { ok <- 0 }
+
+rm = IO.remove("/tmp/langtest_missing_file_987654321.tmp")
+? rm == rm { } { ok <- 0 }
+
+rn = IO.rename("/tmp/langtest_missing_a_987654321.tmp", "/tmp/langtest_missing_b_987654321.tmp")
+? rn == rn { } { ok <- 0 }
+
+cstdio16_test_ok = ok
+report_test("cstdio16", cstdio16_test_ok)

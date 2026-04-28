@@ -1,0 +1,24 @@
+@ "cstd12.lang"
+@ "ffi.lang"
+@ "tests/color.lang"
+
+ok : int <- 1
+
+abs_fn = bind_one(cstd12.lib, cstd12.abi, cstd12.functions.abs)
+? abs_fn(-4) == 4 { } { ok <- 0 }
+
+subset = {
+    lib : string = cstd12.lib
+    abi : string = cstd12.abi
+    functions = {
+        abs = cstd12.functions.abs
+        strlen = cstd12.functions.strlen
+    }
+}
+
+lib = bind_lib(subset)
+? lib.abs(-3) == 3 { } { ok <- 0 }
+? lib.strlen("abc") == 3 { } { ok <- 0 }
+
+ffi_test_ok = ok
+report_test("ffi", ffi_test_ok)

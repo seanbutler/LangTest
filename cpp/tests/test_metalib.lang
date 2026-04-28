@@ -1,0 +1,29 @@
+@ "metalib.lang"
+@ "tests/color.lang"
+
+ok : int <- 1
+
+module = {
+    add = (a, b) { a + b }
+    sub = (a, b) { a - b }
+    _debug = (x) { x }
+    hidden : int = 7
+}
+
+allowed = { add : int = 1  sub : int = 1  hidden : int = 1 }
+denied = { _debug : int = 1 }
+name_map = { hidden : string = "value" }
+
+pub = public_api(module, denied)
+? has_key(pub, "_debug") == 0 { } { ok <- 0 }
+
+only = exports_only(module, allowed)
+? has_key(only, "add") == 1 { } { ok <- 0 }
+? has_key(only, "_debug") == 0 { } { ok <- 0 }
+
+mapped = exports_map(module, allowed, name_map)
+? has_key(mapped, "value") == 1 { } { ok <- 0 }
+? has_key(mapped, "hidden") == 0 { } { ok <- 0 }
+
+metalib_test_ok = ok
+report_test("metalib", metalib_test_ok)

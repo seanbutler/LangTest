@@ -1,0 +1,25 @@
+@ "cstd12.lang"
+@ "ffi.lang"
+@ "tests/color.lang"
+
+ok : int <- 1
+
+C = bind_lib(cstd12)
+
+? C.strlen("hello") == 5 { } { ok <- 0 }
+? C.strcmp("abc", "abc") == 0 { } { ok <- 0 }
+? C.strncmp("abcdef", "abcxyz", 3) == 0 { } { ok <- 0 }
+? C.abs(-42) == 42 { } { ok <- 0 }
+? C.atoi("1234") == 1234 { } { ok <- 0 }
+? C.strtol("7f", {}, 16) == 127 { } { ok <- 0 }
+? C.toupper(97) == 65 { } { ok <- 0 }
+? C.tolower(65) == 97 { } { ok <- 0 }
+? C.isalnum(65) != 0 { } { ok <- 0 }
+? C.isalpha(65) != 0 { } { ok <- 0 }
+
+C.srand(1)
+r = C.rand()
+? r >= 0 { } { ok <- 0 }
+
+cstd12_test_ok = ok
+report_test("cstd12", cstd12_test_ok)
