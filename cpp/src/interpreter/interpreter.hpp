@@ -38,6 +38,7 @@ private:
     ValuePtr exec_decl  (const ast::DeclStmt&   s, std::shared_ptr<Environment> env);
     ValuePtr exec_assign(const ast::AssignStmt& s, std::shared_ptr<Environment> env);
     ValuePtr exec_expr_stmt(const ast::ExprStmt& s, std::shared_ptr<Environment> env);
+    ValuePtr exec_import(const ast::ImportStmt& s, std::shared_ptr<Environment> env);
 
     // ── expression evaluation ─────────────────────────────────────────────────
     ValuePtr eval(const ast::Expr& expr, std::shared_ptr<Environment> env);

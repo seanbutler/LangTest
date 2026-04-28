@@ -1,0 +1,84 @@
+// Standard library (optional include with @ "stdlib.lang").
+// All functions are expressed in terms of core language operators.
+
+// ----- clone ---------------------------------------------------------------
+// Return a shallow copy of a hash.
+
+clone = (src) {
+    result = {}
+    src >> (k, v) { result.(k) <- v }
+    result
+}
+
+// ----- without -------------------------------------------------------------
+// Return a copy of src with the named member removed.
+
+without = (src, excluded) {
+    result = {}
+    src >> (k, v) {
+        ? k != excluded { result.(k) <- v } { }
+    }
+    result
+}
+
+// ----- rename --------------------------------------------------------------
+// Return a copy of src with old_key renamed to new_key.
+
+rename = (src, old_key, new_key) {
+    result = {}
+    src >> (k, v) {
+        ? k == old_key { result.(new_key) <- v }
+                       { result.(k)       <- v }
+    }
+    result
+}
+
+// ----- merge ---------------------------------------------------------------
+// Return a new hash with all members of a, overridden by members of b.
+
+merge = (a, b) {
+    result = {}
+    a >> (k, v) { result.(k) <- v }
+    b >> (k, v) { result.(k) <- v }
+    result
+}
+
+// ----- has -----------------------------------------------------------------
+// Return 1 if obj has a member with the given key, 0 otherwise.
+
+has = (obj, key) {
+    found : int <- 0
+    obj >> (k, v) {
+        ? k == key { found <- 1 } { }
+    }
+    found
+}
+
+// ----- size ----------------------------------------------------------------
+// Return the number of members in a hash.
+
+size = (obj) {
+    count : int <- 0
+    obj >> (k, v) { count <- count + 1 }
+    count
+}
+
+// ----- filter_map ----------------------------------------------------------
+// Return a new hash containing only members for which pred(k, v) is truthy.
+
+filter_map = (src, pred) {
+    result = {}
+    src >> (k, v) {
+        ? pred(k, v) { result.(k) <- v } { }
+    }
+    result
+}
+
+// ----- map_values ----------------------------------------------------------
+// Return a new hash with each value replaced by fn(v).
+
+map_values = (src, fn) {
+    result = {}
+    src >> (k, v) { result.(k) <- fn(v) }
+    result
+}

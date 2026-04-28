@@ -77,6 +77,13 @@ Program Parser::parse() {
 // ── statements ────────────────────────────────────────────────────────────────
 
 StmtPtr Parser::parse_stmt() {
+    // Import:  '@' string
+    if (check(TT::At)) {
+        advance();
+        std::string path = expect(TT::String).string_value();
+        return std::make_shared<ImportStmt>(std::move(path));
+    }
+
     // Typed declaration:  name ':' type ('=' | '<-') expr
     if (check(TT::Identifier) && check(TT::Colon, 1)) {
         std::string name    = advance().lexeme;

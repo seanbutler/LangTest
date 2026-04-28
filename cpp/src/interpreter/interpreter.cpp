@@ -1,4 +1,7 @@
 #include "interpreter/interpreter.hpp"
+#include "lexer/lexer.hpp"
+#include "parser/parser.hpp"
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <cassert>
@@ -48,6 +51,8 @@ ValuePtr Interpreter::exec(const ast::Stmt& stmt, std::shared_ptr<Environment> e
         return exec_assign(*s, env);
     if (auto* s = dynamic_cast<const ast::ExprStmt*>(&stmt))
         return exec_expr_stmt(*s, env);
+    if (auto* s = dynamic_cast<const ast::ImportStmt*>(&stmt))
+        return exec_import(*s, env);
     throw RuntimeError("Unknown statement type");
 }
 
@@ -275,6 +280,26 @@ ValuePtr Interpreter::eval_iter(const ast::IterExpr& e,
         if (k == "()") continue;   // skip constructor slot
         call_callable(fn, { Value::from(k), v }, nullptr);
     }
+    return Value::nil();
+}
+
+ValuePtr Interpreter::exec_import(const ast::ImportStmt& s,
+                                   std::shared_ptr<Environment> env) {
+    std::ifstream f(s.path);
+    if (!f)
+        throw RuntimeError("Cannot open import file: '" + s.path + "'");
+    std::ostringstream buf;
+    buf << f.rdbuf();
+
+    Lexer  lexer(buf.str());
+    Parser parser(lexer.tokenize());
+    auto   program = parser.parse();
+
+    // Run imported file in the caller's environment so all definitions
+    // become visible in that scope.
+    for (auto& stmt : program.statements)
+        exec(*stmt, env);
+
     return Value::nil();
 }
 

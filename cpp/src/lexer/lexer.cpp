@@ -7,7 +7,6 @@ namespace lang {
 
 static const std::unordered_map<std::string, TokenType> KEYWORDS = {
     { "if",   TokenType::If   },
-    { "from", TokenType::From },
 };
 
 Lexer::Lexer(std::string source) : source_(std::move(source)) {}

@@ -122,6 +122,12 @@ struct IterExpr : Expr {
 
 // ── statements ────────────────────────────────────────────────────────────────
 
+// from "path"  /  @ "path"  — import all definitions from a file
+struct ImportStmt : Stmt {
+    std::string path;
+    explicit ImportStmt(std::string p) : path(std::move(p)) {}
+};
+
 // name [: type] (= | <-) expr
 struct DeclStmt : Stmt {
     std::string                name;

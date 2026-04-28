@@ -16,3 +16,4 @@ add_executable(lang
 
 target_include_directories(lang PRIVATE src)
 target_compile_options(lang PRIVATE -Wall -Wextra -Wpedantic)
+

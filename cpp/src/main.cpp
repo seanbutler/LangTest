@@ -14,8 +14,7 @@ static std::string read_file(const std::string& path) {
     return buf.str();
 }
 
-static void run(const std::string& source, bool trace = false) {
-    // -- lex ------------------------------------------------------------------
+static void run(const std::string& source, lang::Interpreter& interp, bool trace = false) {
     lang::Lexer lexer(source);
     auto tokens = lexer.tokenize();
 
@@ -26,13 +25,8 @@ static void run(const std::string& source, bool trace = false) {
                       << static_cast<int>(t.type) << "  " << t.lexeme << "\n";
     }
 
-    // -- parse ------------------------------------------------------------------
     lang::Parser parser(std::move(tokens));
     auto ast = parser.parse();
-
-    // -- execute ------------------------------------------------------------------
-    std::cout << "══ OUTPUT ══════════════════════════════════════════\n";
-    lang::Interpreter interp(trace);
     interp.run(ast);
 }
 
@@ -51,7 +45,11 @@ int main(int argc, char** argv) {
             std::cerr << "Usage: lang <file.lang> [--trace]\n";
             return 1;
         }
-        run(read_file(file), trace);
+
+        lang::Interpreter interp(trace);
+
+        std::cout << "══ OUTPUT ══════════════════════════════════════════\n";
+        run(read_file(file), interp, trace);
     }
     catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
