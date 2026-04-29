@@ -1,10 +1,10 @@
-@ "lib/cstd12.vo"
+@ "lib/cstdlib.vo"
 @ "lib/ffi.vo"
 @ "tests/color.vo"
 
 ok : int <- 1
 
-C = bind_lib(cstd12)
+C = bind_lib(cstdlib)
 
 ? C.strlen("hello") == 5 { } { ok <- 0 }
 ? C.strcmp("abc", "abc") == 0 { } { ok <- 0 }
@@ -21,5 +21,5 @@ C.srand(1)
 r = C.rand()
 ? r >= 0 { } { ok <- 0 }
 
-cstd12_test_ok = ok
-report_test("cstd12", cstd12_test_ok)
+cstdlib_test_ok = ok
+report_test("cstdlib", cstdlib_test_ok)

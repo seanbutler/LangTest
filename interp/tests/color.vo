@@ -1,12 +1,12 @@
-@ "lib/cstdio16.vo"
+@ "lib/cstdio.vo"
 @ "lib/ffi.vo"
 @ "lib/stdio.vo"
 
 _color_io = bind_lib({
-    lib : string = cstdio16.lib
-    abi : string = cstdio16.abi
+    lib : string = cstdio.lib
+    abi : string = cstdio.abi
     functions = {
-        putchar = cstdio16.functions.putchar
+        putchar = cstdio.functions.putchar
     }
 })
 

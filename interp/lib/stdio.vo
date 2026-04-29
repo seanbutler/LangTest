@@ -1,10 +1,10 @@
-@ "lib/cstdio16.vo"
+@ "lib/cstdio.vo"
 @ "lib/ffi.vo"
 
 // printf("%s", str) — print a string, no implicit newline
 _spec_printf_s = {
-    lib    : string = cstdio16.lib
-    abi    : string = cstdio16.abi
+    lib    : string = cstdio.lib
+    abi    : string = cstdio.abi
     symbol : string = "printf"
     params = { p1 : string = "cstring"  p2 : string = "cstring" }
     returns : string = "int"
@@ -13,8 +13,8 @@ printf_s = $$ _spec_printf_s
 
 // printf("%d", n) — print an integer, no implicit newline
 _spec_printf_i = {
-    lib    : string = cstdio16.lib
-    abi    : string = cstdio16.abi
+    lib    : string = cstdio.lib
+    abi    : string = cstdio.abi
     symbol : string = "printf"
     params = { p1 : string = "cstring"  p2 : string = "int" }
     returns : string = "int"

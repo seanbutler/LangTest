@@ -67,7 +67,7 @@ puts = $$ spec
 ## Building
 
 ```sh
-cd cpp
+cd interp
 cmake -B build
 cmake --build build
 ```
@@ -128,11 +128,11 @@ print_list(sieve(range(2, 50)))
 
 | Path | Contents |
 |------|----------|
-| `cpp/src/lexer/` | Tokeniser |
-| `cpp/src/parser/` | Recursive-descent parser |
-| `cpp/src/ast/` | AST node definitions |
-| `cpp/src/interpreter/` | Tree-walking interpreter, FFI, environment |
-| `cpp/stdio.vo` | `printf_s` / `printf_i` bindings |
-| `cpp/cstdio16.vo` | C stdio descriptor library |
-| `cpp/cstd12.vo` | C stdlib descriptor library |
-| `cpp/ffi.vo` | FFI helper (`bind_one`, `bind_lib`) |
+| `interp/src/lexer/` | Tokeniser |
+| `interp/src/parser/` | Recursive-descent parser |
+| `interp/src/ast/` | AST node definitions |
+| `interp/src/interpreter/` | Tree-walking interpreter, FFI, environment |
+| `interp/lib/stdio.vo` | `printf_s` / `printf_i` bindings |
+| `interp/lib/cstdio.vo` | C stdio descriptor library |
+| `interp/lib/cstdlib.vo` | C stdlib descriptor library |
+| `interp/lib/ffi.vo` | FFI helper (`bind_one`, `bind_lib`) |

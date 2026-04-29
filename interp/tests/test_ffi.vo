@@ -1,18 +1,18 @@
-@ "lib/cstd12.vo"
+@ "lib/cstdlib.vo"
 @ "lib/ffi.vo"
 @ "tests/color.vo"
 
 ok : int <- 1
 
-abs_fn = bind_one(cstd12.lib, cstd12.abi, cstd12.functions.abs)
+abs_fn = bind_one(cstdlib.lib, cstdlib.abi, cstdlib.functions.abs)
 ? abs_fn(-4) == 4 { } { ok <- 0 }
 
 subset = {
-    lib : string = cstd12.lib
-    abi : string = cstd12.abi
+    lib : string = cstdlib.lib
+    abi : string = cstdlib.abi
     functions = {
-        abs = cstd12.functions.abs
-        strlen = cstd12.functions.strlen
+        abs = cstdlib.functions.abs
+        strlen = cstdlib.functions.strlen
     }
 }
 

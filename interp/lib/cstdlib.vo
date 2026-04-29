@@ -1,8 +1,8 @@
 // C stdlib practical starter set (12 functions)
 // Descriptor-only metadata for future FFI binding/codegen.
-// Usage idea: @ "lib/cstd12.vo"
+// Usage idea: @ "lib/cstdlib.vo"
 
-cstd12 = {
+cstdlib = {
     lib : string = "libc.so.6"
     abi : string = "c"
 
