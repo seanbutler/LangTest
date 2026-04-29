@@ -168,6 +168,10 @@ ExprPtr Parser::parse_unary() {
         advance();
         return std::make_shared<UnaryExpr>("-", parse_postfix());
     }
+    if (check(TT::Bang)) {
+        advance();
+        return std::make_shared<UnaryExpr>("!", parse_unary());
+    }
     if (check(TT::DollarDollar)) {
         advance();
         return std::make_shared<UnaryExpr>("$$", parse_postfix());
@@ -252,6 +256,25 @@ ExprPtr Parser::parse_primary() {
     if (check(TT::LBrace))
         return parse_hash_literal();
 
+    // Loop block:  '~' '{' body '}'
+    if (check(TT::Tilde)) {
+        advance();
+        expect(TT::LBrace);
+        ++loop_depth_;
+        auto body = parse_block_body();
+        --loop_depth_;
+        expect(TT::RBrace);
+        return std::make_shared<LoopExpr>(std::move(body));
+    }
+
+    // Break:  '\'
+    if (check(TT::Backslash)) {
+        if (loop_depth_ == 0)
+            error("\\ (break) used outside a ~{ } loop");
+        advance();
+        return std::make_shared<BreakExpr>();
+    }
+
     error("Expected expression");
 }
 
@@ -309,7 +332,10 @@ ExprPtr Parser::parse_callable() {
     auto params = parse_param_list();
 
     expect(TT::LBrace);
+    int saved_depth = loop_depth_;
+    loop_depth_ = 0;
     auto body = parse_block_body();
+    loop_depth_ = saved_depth;
     expect(TT::RBrace);
 
     return std::make_shared<CallableExpr>(std::move(params), std::move(body));

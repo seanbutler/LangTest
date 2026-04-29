@@ -33,6 +33,13 @@ enum class TokenType {
     // Conditional
     Question,  // ?
 
+    // Loop
+    Tilde,     // ~
+    Backslash, // \ (loop break/escape)
+
+    // Logical NOT
+    Bang,      // !
+
     // Module import
     At,        // @
 

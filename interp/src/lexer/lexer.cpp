@@ -147,9 +147,11 @@ std::vector<Token> Lexer::tokenize() {
             if (peek() == '=') { advance(); tokens.push_back({ TokenType::Eq,  "==", ln, cl }); }
             else                             tokens.push_back({ TokenType::Assign, "=", ln, cl });
             break;
+        case '~': tokens.push_back({ TokenType::Tilde,     "~",  ln, cl }); break;
+        case '\\': tokens.push_back({ TokenType::Backslash, "\\", ln, cl }); break;
         case '!':
-            if (peek() == '=') { advance(); tokens.push_back({ TokenType::Neq, "!=", ln, cl }); }
-            else error("Expected '=' after '!'");
+            if (peek() == '=') { advance(); tokens.push_back({ TokenType::Neq,  "!=", ln, cl }); }
+            else                             tokens.push_back({ TokenType::Bang,  "!",  ln, cl });
             break;
         case '<':
             if (peek() == '-') { advance(); tokens.push_back({ TokenType::Arrow, "<-", ln, cl }); }

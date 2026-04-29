@@ -210,6 +210,10 @@ ValuePtr Interpreter::eval(const ast::Expr& expr,
         return eval_dyn_member(*e, env);
     if (auto* e = dynamic_cast<const ast::IterExpr*>(&expr))
         return eval_iter(*e, env);
+    if (auto* e = dynamic_cast<const ast::LoopExpr*>(&expr))
+        return eval_loop(*e, env);
+    if (dynamic_cast<const ast::BreakExpr*>(&expr))
+        throw BreakSignal{};
     throw RuntimeError("Unknown expression type");
 }
 
@@ -296,6 +300,7 @@ ValuePtr Interpreter::eval_unary(const ast::UnaryExpr& e,
     ValuePtr v = eval(*e.operand, env);
     if (e.op == "-" && v->is_int()) return Value::from(-v->as_int());
     if (e.op == "-" && v->is_double()) return Value::from(-v->as_double());
+    if (e.op == "!") return Value::from(static_cast<int64_t>(v->is_truthy() ? 0 : 1));
     if (e.op == "$$") return bind_foreign_function(v);
     throw RuntimeError("Unsupported unary operator '" + e.op + "'");
 }
@@ -381,6 +386,23 @@ ValuePtr Interpreter::eval_iter(const ast::IterExpr& e,
         call_callable(fn, { Value::from(k), v }, nullptr);
     }
     return Value::nil();
+}
+
+ValuePtr Interpreter::eval_loop(const ast::LoopExpr& e,
+                                 std::shared_ptr<Environment> env) {
+    while (true) {
+        try {
+            exec_block(e.body, env);
+        } catch (BreakSignal&) {
+            break;
+        }
+    }
+    return Value::nil();
+}
+
+ValuePtr Interpreter::eval_break(const ast::BreakExpr&,
+                                  std::shared_ptr<Environment>) {
+    throw BreakSignal{};
 }
 
 ValuePtr Interpreter::exec_import(const ast::ImportStmt& s,

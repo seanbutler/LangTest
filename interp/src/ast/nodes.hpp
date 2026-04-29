@@ -125,6 +125,15 @@ struct IterExpr : Expr {
         : object(std::move(obj)), callable(std::move(fn)) {}
 };
 
+// ~{ body… }  — looping block; exits when \ is executed inside
+struct LoopExpr : Expr {
+    std::vector<StmtPtr> body;
+    explicit LoopExpr(std::vector<StmtPtr> b) : body(std::move(b)) {}
+};
+
+// \  — escape the enclosing ~{ } (lexically scoped)
+struct BreakExpr : Expr {};
+
 // ── statements ────────────────────────────────────────────────────────────────
 
 // @ "path"  — import all definitions from a file

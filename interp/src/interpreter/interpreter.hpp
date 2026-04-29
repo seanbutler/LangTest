@@ -17,6 +17,9 @@ struct ReturnSignal {
     ValuePtr value;
 };
 
+// Used for \ (break) inside ~{ } loop blocks.
+struct BreakSignal {};
+
 class Interpreter {
 public:
     explicit Interpreter(bool verbose = true);
@@ -56,6 +59,8 @@ private:
     ValuePtr eval_callable (const ast::CallableExpr&  e, std::shared_ptr<Environment> env);
     ValuePtr eval_dyn_member(const ast::DynMemberExpr& e, std::shared_ptr<Environment> env);
     ValuePtr eval_iter     (const ast::IterExpr&       e, std::shared_ptr<Environment> env);
+    ValuePtr eval_loop     (const ast::LoopExpr&       e, std::shared_ptr<Environment> env);
+    ValuePtr eval_break    (const ast::BreakExpr&      e, std::shared_ptr<Environment> env);
 
     // --- call dispatch --------------------------------------------------
     ValuePtr call_value(ValuePtr callee,
