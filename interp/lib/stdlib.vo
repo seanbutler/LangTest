@@ -6,7 +6,7 @@
 
 clone = (src) {
     result = {}
-    src >> (k, v) { result.(k) <- v }
+    src >> (k, v) { result.(k) := v }
     result
 }
 
@@ -16,7 +16,7 @@ clone = (src) {
 without = (src, excluded) {
     result = {}
     src >> (k, v) {
-        ? k != excluded { result.(k) <- v } { }
+        ? k != excluded { result.(k) := v } { }
     }
     result
 }
@@ -27,8 +27,8 @@ without = (src, excluded) {
 rename = (src, old_key, new_key) {
     result = {}
     src >> (k, v) {
-        ? k == old_key { result.(new_key) <- v }
-                       { result.(k)       <- v }
+        ? k == old_key { result.(new_key) := v }
+                       { result.(k)       := v }
     }
     result
 }
@@ -38,8 +38,8 @@ rename = (src, old_key, new_key) {
 
 merge = (a, b) {
     result = {}
-    a >> (k, v) { result.(k) <- v }
-    b >> (k, v) { result.(k) <- v }
+    a >> (k, v) { result.(k) := v }
+    b >> (k, v) { result.(k) := v }
     result
 }
 
@@ -47,9 +47,9 @@ merge = (a, b) {
 // Return 1 if obj has a member with the given key, 0 otherwise.
 
 has = (obj, key) {
-    found : int <- 0
+    found : int := 0
     obj >> (k, v) {
-        ? k == key { found <- 1 } { }
+        ? k == key { found := 1 } { }
     }
     found
 }
@@ -58,8 +58,8 @@ has = (obj, key) {
 // Return the number of members in a hash.
 
 size = (obj) {
-    count : int <- 0
-    obj >> (k, v) { count <- count + 1 }
+    count : int := 0
+    obj >> (k, v) { count := count + 1 }
     count
 }
 
@@ -69,7 +69,7 @@ size = (obj) {
 filter_map = (src, pred) {
     result = {}
     src >> (k, v) {
-        ? pred(k, v) { result.(k) <- v } { }
+        ? pred(k, v) { result.(k) := v } { }
     }
     result
 }
@@ -79,7 +79,7 @@ filter_map = (src, pred) {
 
 map_values = (src, fn) {
     result = {}
-    src >> (k, v) { result.(k) <- fn(v) }
+    src >> (k, v) { result.(k) := fn(v) }
     result
 }
 

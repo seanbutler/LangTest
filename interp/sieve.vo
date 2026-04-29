@@ -13,8 +13,8 @@ Node = {
     next            = empty
 
     () = (v : int, n) {
-        self.value <- v
-        self.next  <- n
+        self.value := v
+        self.next  := n
     }
 }
 

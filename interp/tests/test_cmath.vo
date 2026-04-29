@@ -3,26 +3,26 @@
 @ "lib/stdlib.vo"
 @ "tests/color.vo"
 
-ok : int <- 1
+ok : int := 1
 
 M = bind_lib(cmath)
 
-? almost_equal(M.sin(0.0), 0.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.cos(0.0), 1.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.tan(0.0), 0.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.asin(0.0), 0.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.acos(1.0), 0.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.atan(0.0), 0.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.atan2(0.0, 1.0), 0.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.sqrt(9.0), 3.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.pow(2.0, 8.0), 256.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.exp(0.0), 1.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.log(1.0), 0.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.log10(100.0), 2.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.floor(2.9), 2.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.ceil(2.1), 3.0, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.fabs(-3.5), 3.5, 0.0000001) == 1 { } { ok <- 0 }
-? almost_equal(M.fmod(7.0, 3.0), 1.0, 0.0000001) == 1 { } { ok <- 0 }
+? almost_equal(M.sin(0.0), 0.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.cos(0.0), 1.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.tan(0.0), 0.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.asin(0.0), 0.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.acos(1.0), 0.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.atan(0.0), 0.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.atan2(0.0, 1.0), 0.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.sqrt(9.0), 3.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.pow(2.0, 8.0), 256.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.exp(0.0), 1.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.log(1.0), 0.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.log10(100.0), 2.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.floor(2.9), 2.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.ceil(2.1), 3.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.fabs(-3.5), 3.5, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(M.fmod(7.0, 3.0), 1.0, 0.0000001) == 1 { } { ok := 0 }
 
 cmath_test_ok = ok
 report_test("cmath", cmath_test_ok)

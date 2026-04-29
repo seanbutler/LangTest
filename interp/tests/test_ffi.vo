@@ -2,10 +2,10 @@
 @ "lib/ffi.vo"
 @ "tests/color.vo"
 
-ok : int <- 1
+ok : int := 1
 
 abs_fn = bind_one(cstdlib.lib, cstdlib.abi, cstdlib.functions.abs)
-? abs_fn(-4) == 4 { } { ok <- 0 }
+? abs_fn(-4) == 4 { } { ok := 0 }
 
 subset = {
     lib : string = cstdlib.lib
@@ -17,8 +17,8 @@ subset = {
 }
 
 lib = bind_lib(subset)
-? lib.abs(-3) == 3 { } { ok <- 0 }
-? lib.strlen("abc") == 3 { } { ok <- 0 }
+? lib.abs(-3) == 3 { } { ok := 0 }
+? lib.strlen("abc") == 3 { } { ok := 0 }
 
 ffi_test_ok = ok
 report_test("ffi", ffi_test_ok)

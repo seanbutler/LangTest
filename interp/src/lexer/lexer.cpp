@@ -136,7 +136,10 @@ std::vector<Token> Lexer::tokenize() {
         case '%': tokens.push_back({ TokenType::Percent, "%", ln, cl }); break;
         case '.': tokens.push_back({ TokenType::Dot,     ".", ln, cl }); break;
         case ',': tokens.push_back({ TokenType::Comma,   ",", ln, cl }); break;
-        case ':': tokens.push_back({ TokenType::Colon,   ":", ln, cl }); break;
+        case ':':
+            if (peek() == '=') { advance(); tokens.push_back({ TokenType::ColonEq, ":=", ln, cl }); }
+            else                             tokens.push_back({ TokenType::Colon,   ":",  ln, cl });
+            break;
         case '(': tokens.push_back({ TokenType::LParen,  "(", ln, cl }); break;
         case ')': tokens.push_back({ TokenType::RParen,  ")", ln, cl }); break;
         case '{': tokens.push_back({ TokenType::LBrace,  "{", ln, cl }); break;
@@ -154,9 +157,8 @@ std::vector<Token> Lexer::tokenize() {
             else                             tokens.push_back({ TokenType::Bang,  "!",  ln, cl });
             break;
         case '<':
-            if (peek() == '-') { advance(); tokens.push_back({ TokenType::Arrow, "<-", ln, cl }); }
-            else if (peek() == '=') { advance(); tokens.push_back({ TokenType::Lte,  "<=", ln, cl }); }
-            else                                  tokens.push_back({ TokenType::Lt,   "<",  ln, cl });
+            if (peek() == '=') { advance(); tokens.push_back({ TokenType::Lte, "<=", ln, cl }); }
+            else                             tokens.push_back({ TokenType::Lt,  "<",  ln, cl });
             break;
         case '>':
             if (peek() == '=') { advance(); tokens.push_back({ TokenType::Gte,  ">=", ln, cl }); }

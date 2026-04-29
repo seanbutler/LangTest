@@ -14,8 +14,8 @@ Everything is an expression. Blocks return their last value. There is no `return
 // declaration
 name = value                  // immutable, untyped
 name : type = value           // immutable, typed
-name : type <- value          // mutable, typed
-target <- new_value           // reassignment
+name : type := value          // mutable, typed
+target := new_value           // reassignment
 
 // hash (object / module / prototype)
 point = { x : int = 0  y : int = 0 }
@@ -28,8 +28,8 @@ Node = {
     value : int = 0
     next         = {}
     () = (v : int, n) {
-        self.value <- v
-        self.next  <- n
+        self.value := v
+        self.next  := n
     }
 }
 node = Node(42, {})           // clones Node, calls ()
@@ -108,7 +108,7 @@ Node = {
     is_empty : int = 0
     value    : int = 0
     next            = empty
-    () = (v : int, n) { self.value <- v  self.next <- n }
+    () = (v : int, n) { self.value := v  self.next := n }
 }
 
 range  = (lo : int, hi : int) {
@@ -142,6 +142,64 @@ print_list = (list) {
 print_list(sieve(range(2, 50)))
 ```
 
+## Example — Extending the language via hashes
+
+VO has no reserved words, so any vocabulary can be introduced as a plain hash of
+callables. Two patterns:
+
+### 1 — Aliasing: a C-familiar vocabulary
+
+A hash whose members wrap VO primitives under familiar names. No language changes
+required; `c` is just a value.
+
+```
+c = {
+    not      = (x)                        { !x }
+    while    = (cond, body)               { ~{ ? !cond() { \ }  body() } }
+    do_while = (body, cond)               { ~{ body()  ? !cond() { \ } } }
+    for      = (lo : int, hi : int, body) {
+        i : int := lo
+        ~{ ? i >= hi { \ }  body(i)  i := i + 1 }
+    }
+}
+
+// use via member access
+i : int := 1
+c.while(() { i <= 5 }, () { printf_i("%d\n", i)  i := i + 1 })
+
+total : int := 0
+c.for(1, 11, (n : int) { total := total + n })
+printf_i("sum 1..10 = %d\n", total)    // 55
+```
+
+### 2 — New syntax: for loops as library callables
+
+Higher-level loop forms are built on `~{ }` and exposed as plain functions.
+Importing the file is all that's needed to use them.
+
+```
+for_range = (lo : int, hi : int, body) {
+    i : int := lo
+    ~{ ? i >= hi { \ }  body(i)  i := i + 1 }
+}
+
+for_step = (lo : int, hi : int, step : int, body) {
+    i : int := lo
+    ~{ ? i >= hi { \ }  body(i)  i := i + step }
+}
+
+for_down = (lo : int, hi : int, body) {
+    i : int := hi - 1
+    ~{ ? i < lo { \ }  body(i)  i := i - 1 }
+}
+
+for_range(1, 6,  (i : int) { printf_i("%d\n", i) })       // 1 2 3 4 5
+for_step(0, 11, 2, (i : int) { printf_i("%d\n", i) })     // 0 2 4 6 8 10
+for_down(1, 6,  (i : int) { printf_i("%d\n", i) })        // 5 4 3 2 1
+```
+
+Full source: `interp/alias.vo`, `interp/for_loop.vo`
+
 ## Source files
 
 | Path | Contents |
@@ -154,6 +212,8 @@ print_list(sieve(range(2, 50)))
 | `interp/lib/cstdio.vo` | C stdio descriptor library |
 | `interp/lib/cstdlib.vo` | C stdlib descriptor library |
 | `interp/lib/ffi.vo` | FFI helper (`bind_one`, `bind_lib`) |
+| `interp/alias.vo` | Example: C-vocabulary hash aliasing VO primitives |
+| `interp/for_loop.vo` | Example: `for_range`, `for_step`, `for_down` as library callables |
 
 ## Related languages
 
@@ -178,12 +238,12 @@ Blocks return their last value; there is no `return` keyword.
 |----------|-------------|
 | **Ruby** | Last expression is the return value; blocks with `{}` |
 | **CoffeeScript** | Implicit returns, cleaner JS semantics, `{}` object literals |
-| **Rust** | Last expression returns; `let`/`let mut` mirrors VO's `=`/`<-` |
+| **Rust** | Last expression returns; `let`/`let mut` mirrors VO's `=`/`:=` |
 | **Scala** | Fully expression-oriented; type annotation syntax `name : Type` is identical to VO |
 | **Haskell** | Everything is an expression; `<-` used for monadic binding |
 | **MoonScript** | Implicit returns, compiles to Lua |
 
-### `<-` assignment operator
+### `:=` assignment operator
 
 | Language | Relationship |
 |----------|-------------|
@@ -229,14 +289,3 @@ VO's `$$` takes a hash descriptor — the binding spec is itself a first-class v
 | **Wren** | Foreign method binding via descriptors |
 | **Python ctypes** | Spec-as-data approach to C binding |
 | **Zig** | `@cImport` — compiler-level C interop via declarations |
-
-### Overall ranking by similarity
-
-| Rank | Language | Primary overlap |
-|------|----------|----------------|
-| 1 | **Self** | Prototype cloning, slots as universal storage, no classes |
-| 2 | **Io** | Prototype cloning, minimal syntax, effectively no keywords |
-| 3 | **Lua** | Universal table, first-class functions, embeddable |
-| 4 | **Rebol / Red** | No reserved words, data-as-code philosophy |
-| 5 | **CoffeeScript** | Expression-oriented, implicit returns, JS semantics |
-| 6 | **Rust** | `=`/`<-` distinction, type annotation syntax, expression blocks |

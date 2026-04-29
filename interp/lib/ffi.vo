@@ -10,7 +10,7 @@ bind_one = (lib : string, abi : string, sig) {
         abi : string = abi
     }
     sig >> (k, v) {
-        spec.(k) <- v
+        spec.(k) := v
     }
     $$ spec
 }
@@ -18,7 +18,7 @@ bind_one = (lib : string, abi : string, sig) {
 bind_lib = (decl) {
     result = {}
     decl.functions >> (name, sig) {
-        result.(name) <- bind_one(decl.lib, decl.abi, sig)
+        result.(name) := bind_one(decl.lib, decl.abi, sig)
     }
     result
 }

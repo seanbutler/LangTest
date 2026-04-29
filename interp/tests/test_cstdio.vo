@@ -2,10 +2,10 @@
 @ "lib/ffi.vo"
 @ "tests/color.vo"
 
-ok : int <- 1
+ok : int := 1
 
-? cstdio.lib == "libc.so.6" { } { ok <- 0 }
-? cstdio.functions.puts.symbol == "puts" { } { ok <- 0 }
+? cstdio.lib == "libc.so.6" { } { ok := 0 }
+? cstdio.functions.puts.symbol == "puts" { } { ok := 0 }
 
 subset = {
     lib : string = cstdio.lib
@@ -19,14 +19,14 @@ subset = {
 }
 
 IO = bind_lib(subset)
-? IO.putchar(65) == 65 { } { ok <- 0 }
-? IO.puts("cstdio subset") != -1 { } { ok <- 0 }
+? IO.putchar(65) == 65 { } { ok := 0 }
+? IO.puts("cstdio subset") != -1 { } { ok := 0 }
 
 rm = IO.remove("/tmp/langtest_missing_file_987654321.tmp")
-? rm == rm { } { ok <- 0 }
+? rm == rm { } { ok := 0 }
 
 rn = IO.rename("/tmp/langtest_missing_a_987654321.tmp", "/tmp/langtest_missing_b_987654321.tmp")
-? rn == rn { } { ok <- 0 }
+? rn == rn { } { ok := 0 }
 
 cstdio_test_ok = ok
 report_test("cstdio", cstdio_test_ok)

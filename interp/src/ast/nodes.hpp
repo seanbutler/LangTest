@@ -142,7 +142,7 @@ struct ImportStmt : Stmt {
     explicit ImportStmt(std::string p) : path(std::move(p)) {}
 };
 
-// name [: type] (= | <-) expr
+// name [: type] (= | :=) expr
 struct DeclStmt : Stmt {
     std::string                name;
     std::optional<std::string> type_ann;
@@ -152,7 +152,7 @@ struct DeclStmt : Stmt {
         : name(std::move(n)), type_ann(std::move(t)), is_mutable(mut), value(std::move(v)) {}
 };
 
-// lvalue <- expr  (lvalue is Identifier or MemberExpr)
+// lvalue := expr  (lvalue is Identifier or MemberExpr)
 struct AssignStmt : Stmt {
     ExprPtr target;
     ExprPtr value;

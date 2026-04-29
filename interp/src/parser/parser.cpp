@@ -84,12 +84,12 @@ StmtPtr Parser::parse_stmt() {
         return std::make_shared<ImportStmt>(std::move(path));
     }
 
-    // Typed declaration:  name ':' type ('=' | '<-') expr
+    // Typed declaration:  name ':' type ('=' | ':=') expr
     if (check(TT::Identifier) && check(TT::Colon, 1)) {
         std::string name    = advance().lexeme;
         advance();                                         // ':'
         std::string type_ann = expect(TT::Identifier).lexeme;
-        bool is_mut = match(TT::Arrow);
+        bool is_mut = match(TT::ColonEq);
         if (!is_mut) expect(TT::Assign);
         auto val = parse_expr();
         return std::make_shared<DeclStmt>(name,
@@ -104,9 +104,9 @@ StmtPtr Parser::parse_stmt() {
         return std::make_shared<DeclStmt>(name, std::nullopt, false, std::move(val));
     }
 
-    // Everything else: parse as expression, then check for '<-' (assignment)
+    // Everything else: parse as expression, then check for ':=' (assignment)
     auto expr = parse_expr();
-    if (match(TT::Arrow)) {
+    if (match(TT::ColonEq)) {
         auto val = parse_expr();
         return std::make_shared<AssignStmt>(std::move(expr), std::move(val));
     }

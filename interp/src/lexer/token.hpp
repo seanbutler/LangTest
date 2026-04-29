@@ -14,7 +14,7 @@ enum class TokenType {
 
     // Binding operators
     Assign,   // =
-    Arrow,    // <-
+    ColonEq,  // :=
 
     // Arithmetic
     Plus, Minus, Star, Slash, Percent,

@@ -8,9 +8,9 @@
 // Return 1 if obj has member key, else 0.
 
 has_key = (obj, key) {
-    found : int <- 0
+    found : int := 0
     obj >> (k, v) {
-        ? k == key { found <- 1 } { }
+        ? k == key { found := 1 } { }
     }
     found
 }
@@ -22,7 +22,7 @@ has_key = (obj, key) {
 pick = (src, allowed_set) {
     result = {}
     src >> (k, v) {
-        ? has_key(allowed_set, k) { result.(k) <- v } { }
+        ? has_key(allowed_set, k) { result.(k) := v } { }
     }
     result
 }
@@ -34,7 +34,7 @@ pick = (src, allowed_set) {
 omit = (src, denied_set) {
     result = {}
     src >> (k, v) {
-        ? has_key(denied_set, k) { } { result.(k) <- v }
+        ? has_key(denied_set, k) { } { result.(k) := v }
     }
     result
 }
@@ -47,9 +47,9 @@ remap = (src, name_map) {
     result = {}
     src >> (k, v) {
         ? has_key(name_map, k) {
-            result.(name_map.(k)) <- v
+            result.(name_map.(k)) := v
         } {
-            result.(k) <- v
+            result.(k) := v
         }
     }
     result
