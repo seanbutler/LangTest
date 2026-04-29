@@ -50,21 +50,47 @@ Current `printf_s`/`printf_i` are problematic. Type already encoded in the name,
   2. **Better:** full varargs `printf(fmt, ...)` FFI support — useful when padding/alignment/precision matter
   3. **Current:** `printf_i("%d\n", n)` style — neither simple nor powerful. Fix this.
 
-### Configurable symbol table (tokenizer externalisation)
-- Move operator/keyword symbol mappings out of the hardcoded lexer into an external table (JSON or similar)
-- Allows users to remap or alias symbols to their own preferred glyphs (e.g. replace `?` with `если`, or `<-` with `≔`)
-- Loaded at interpreter startup; falls back to built-in defaults if no config present
-- Requires the lexer to drive tokenisation from the table rather than a fixed switch/map
-- Consider: which symbols are fixed structural delimiters (braces, parens, comma) vs remappable operators
+### Localisation — three-layer architecture
 
-### UTF-8 support
-- The lexer currently treats source as raw bytes; multi-byte UTF-8 sequences in identifiers or string literals may be mishandled
-- Goals:
-  - Identifiers may contain UTF-8 characters (enables non-ASCII variable/function names)
-  - String literals preserve UTF-8 content correctly
-  - Line/column tracking counts Unicode codepoints, not bytes
-  - Operator symbols from the configurable symbol table may themselves be multi-byte glyphs
-- Approach: decode source to codepoints before lexing, or use a UTF-8-aware character classification step
+VO has no reserved words and symbol-only syntax, making it uniquely suited to full natural-language localisation. The goal is to separate three concerns cleanly:
+
+```
+1. Source (community symbols) → symbol table → canonical AST
+2. Canonical AST → interpreter
+3. Interpreter errors → error template table → community-language diagnostics
+```
+
+No other language separates all three layers. Most treat localisation as a translation skin over an English-first design; VO's design makes it a first-class property.
+
+**Layer 1 — Configurable symbol table (lexer)**
+- Move operator mappings out of the hardcoded lexer into an external table (JSON or similar)
+- Communities remap any canonical symbol to any UTF-8 glyph (e.g. `?` → `если`, `<-` → `≔`)
+- Loaded at startup; falls back to built-in defaults if absent
+- Decide which symbols are fixed structural delimiters (braces, parens, comma) vs remappable
+
+**Layer 2 — UTF-8 support (lexer + runtime)**
+- Lexer currently treats source as raw bytes; multi-byte sequences may be mishandled
+- Identifiers may contain UTF-8 characters (non-ASCII variable/function names)
+- String literals preserve UTF-8 content correctly
+- Line/column tracking counts Unicode codepoints, not bytes
+- Operator glyphs in the symbol table may themselves be multi-byte
+- Approach: decode source to codepoints before lexing, or UTF-8-aware character classification
+
+**Layer 3 — Error message templates (runtime)**
+- Externalise all `RuntimeError` and `ParseError` strings into a template table
+- Templates must support:
+  - Argument reordering (Arabic, Japanese, Turkish word order)
+  - Gender agreement metadata
+  - Plural forms (Russian 4 forms, Arabic 6 forms)
+  - RTL/LTR direction hints
+- Consider Mustache-style templates for community accessibility
+- Library options: mstch, kainjow/mustache, or std::format (C++20)
+
+**Academic angle**
+- Frame against Hermans/Swidan 2023 framework (12 localisation aspects)
+- Target SPLASH-E or PPIG for publication
+
+---
 
 ### Visitor-style dispatch (refactor)
 - Replace `dynamic_cast` chains in `Interpreter::eval` / `Interpreter::exec` with a proper visitor pattern
@@ -74,4 +100,3 @@ Current `printf_s`/`printf_i` are problematic. Type already encoded in the name,
 - Remove dynamic-cast chains once all nodes dispatch through visitors
 - Goal: clearer extension path and stronger compile-time coverage when adding AST nodes
 - Intentionally deferred until feature set is more stable
-
