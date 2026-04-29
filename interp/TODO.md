@@ -60,8 +60,6 @@ VO has no reserved words and symbol-only syntax, making it uniquely suited to fu
 3. Interpreter errors → error template table → community-language diagnostics
 ```
 
-No other language separates all three layers. Most treat localisation as a translation skin over an English-first design; VO's design makes it a first-class property.
-
 **Layer 1 — Configurable symbol table (lexer)**
 - Move operator mappings out of the hardcoded lexer into an external table (JSON or similar)
 - Communities remap any canonical symbol to any UTF-8 glyph (e.g. `?` → `если`, `<-` → `≔`)
@@ -86,11 +84,6 @@ No other language separates all three layers. Most treat localisation as a trans
 - Consider Mustache-style templates for community accessibility
 - Library options: mstch, kainjow/mustache, or std::format (C++20)
 
-**Academic angle**
-- Frame against Hermans/Swidan 2023 framework (12 localisation aspects)
-- Target SPLASH-E or PPIG for publication
-
----
 
 ### Visitor-style dispatch (refactor)
 - Replace `dynamic_cast` chains in `Interpreter::eval` / `Interpreter::exec` with a proper visitor pattern
