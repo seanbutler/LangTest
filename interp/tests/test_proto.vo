@@ -1,0 +1,45 @@
+@ "tests/color.vo"
+
+ok : int := 1
+
+// basic prototype clone — cloning sets up independent slots
+Point = {
+    x : int = 0
+    y : int = 0
+    () = (px : int, py : int) {
+        self.x := px
+        self.y := py
+    }
+}
+
+p = Point(3, 4)
+? p.x == 3 { } { ok := 0 }
+? p.y == 4 { } { ok := 0 }
+
+// two instances are independent
+q = Point(10, 20)
+? q.x == 10 { } { ok := 0 }
+? p.x == 3  { } { ok := 0 }   // p unaffected by q
+
+// prototype slots are unchanged
+? Point.x == 0 { } { ok := 0 }
+? Point.y == 0 { } { ok := 0 }
+
+// nested constructor
+Node = {
+    value : int = 0
+    next        = {}
+    () = (v : int, n) {
+        self.value := v
+        self.next  := n
+    }
+}
+
+n1 = Node(42, {})
+n2 = Node(99, n1)
+? n1.value == 42 { } { ok := 0 }
+? n2.value == 99 { } { ok := 0 }
+? n2.next.value == 42 { } { ok := 0 }
+
+proto_test_ok = ok
+report_test("proto", proto_test_ok)

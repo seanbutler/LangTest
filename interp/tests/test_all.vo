@@ -5,7 +5,26 @@
 @ "tests/test_cstdio.vo"
 @ "tests/test_cmath.vo"
 @ "tests/test_loop.vo"
+@ "tests/test_logic.vo"
+@ "tests/test_loops.vo"
+@ "tests/test_proto.vo"
+@ "tests/test_dynmember.vo"
+@ "tests/test_iter.vo"
+@ "tests/test_float.vo"
 @ "tests/color.vo"
 
-all_tests_ok : int = stdlib_test_ok * metalib_test_ok * ffi_test_ok * cstdlib_test_ok * cstdio_test_ok * cmath_test_ok * loop_test_ok
+all_tests_ok : int = stdlib_test_ok 
+    * metalib_test_ok 
+    * ffi_test_ok 
+    * cstdlib_test_ok 
+    * cstdio_test_ok 
+    * cmath_test_ok 
+    * loop_test_ok 
+    * logic_test_ok 
+    * loops_test_ok 
+    * proto_test_ok 
+    * dynmember_test_ok 
+    * iter_test_ok 
+    * float_test_ok
+    
 report_test("all-tests", all_tests_ok)

@@ -1,0 +1,29 @@
+@ "tests/color.vo"
+
+ok : int := 1
+
+h = { a : int = 1  b : int = 2  c : int = 3 }
+
+// read via dynamic key
+k1 : string = "a"
+? h.(k1) == 1 { } { ok := 0 }
+
+// key as expression
+? h.("b") == 2 { } { ok := 0 }
+
+// write via dynamic key
+m = { x : int = 0  y : int = 0 }
+field : string = "x"
+m.(field) := 99
+? m.x == 99 { } { ok := 0 }
+
+// write with key as expression
+m.("y") := 42
+? m.y == 42 { } { ok := 0 }
+
+// dynamic and static access refer to same slot
+m.(field) := 7
+? m.x == 7 { } { ok := 0 }
+
+dynmember_test_ok = ok
+report_test("dynmember", dynmember_test_ok)

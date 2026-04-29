@@ -1,0 +1,36 @@
+@ "lib/stdlib.vo"
+@ "tests/color.vo"
+
+ok : int := 1
+
+// literals
+? almost_equal(1.5, 1.5, 0.0) == 1 { } { ok := 0 }
+? almost_equal(0.0, 0.0, 0.0) == 1 { } { ok := 0 }
+
+// arithmetic
+? almost_equal(1.5 + 2.5, 4.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(3.0 - 1.5, 1.5, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(2.0 * 3.5, 7.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(7.0 / 2.0, 3.5, 0.0000001) == 1 { } { ok := 0 }
+
+// comparison
+? 1.0 < 2.0  { } { ok := 0 }
+? 2.0 > 1.0  { } { ok := 0 }
+? 1.5 <= 1.5 { } { ok := 0 }
+? 1.5 >= 1.5 { } { ok := 0 }
+? 1.0 == 1.0 { } { ok := 0 }
+? 1.0 != 2.0 { } { ok := 0 }
+
+// unary minus
+? almost_equal(-3.5, 0.0 - 3.5, 0.0000001) == 1 { } { ok := 0 }
+
+// exponent notation
+? almost_equal(1.0e2, 100.0, 0.0000001) == 1 { } { ok := 0 }
+? almost_equal(2.5e-1, 0.25, 0.0000001) == 1 { } { ok := 0 }
+
+// mixed int/float does not coerce — floats stay floats
+x : double = 1.5
+? almost_equal(x, 1.5, 0.0000001) == 1 { } { ok := 0 }
+
+float_test_ok = ok
+report_test("float", float_test_ok)

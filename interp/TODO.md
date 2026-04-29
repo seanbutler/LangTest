@@ -12,17 +12,17 @@
  - Memory Visualisation
  
 
-### Loop syntax: `~` / `loop` + `!` break (MUST SOONER) 
-- Add `~` (aliased with `loop`) as a prefix loop construct: `~ cond { body }`
-- Add `!` as a break statement that exits the nearest enclosing `~`
-- `!` is implemented as a `BreakSignal` C++ exception, caught at the `~` boundary (mirrors `ReturnSignal`)
-- Conditional break pattern: `? X { ! }` inside a loop body
+### Loop syntax — DONE
+- `~{ body }` — infinite loop block; repeats until `\` is executed
+- `\` — break/escape; lexically scoped to enclosing `~{ }`, parse-time enforced
+- `!` — logical NOT (prefix unary); `!x`, `!!(x)` etc.
+- `\` inside a callable defined inside `~{ }` is a parse error (loop_depth_ reset on callable entry)
+- `BreakSignal` C++ exception thrown by `\`, caught at `~{ }` boundary (mirrors `ReturnSignal`)
 
 ```
-~ true {
-    code here
-    ? x == 0 { ! }
-}
+~{ ? !cond { \ }  body }     // while
+~{ body  ? !cond { \ } }     // do-while
+~{ body }                     // infinite
 ```
 
 ### Bare block `{ }` as zero-arg callable (COULD LATER)
@@ -30,12 +30,18 @@
 - Makes `func_name = { code }` a callable, invoked as `func_name()`
 - Currently `{ }` is always parsed as a hash literal — parser needs to distinguish
 
+### Lazy boolean operators `&` and `|`
+- Add `&` (logical AND) and `|` (logical OR) as proper infix operators
+- `a & b` desugars to `? a { b } { 0 }` — short-circuits, no call-frame overhead
+- `a | b` desugars to `? a { 1 } { b }` — short-circuits
+- Precedence: `|` below `&`, both below `!`, above comparison
+- Replaces the `logic.and` / `logic.or` callable workaround for hot paths
+
 ### Tail-call optimisation (TCO)
 - The interpreter currently uses the C++ call stack for recursion
 - Deep recursion (e.g. `range(1, 10000)`) will stack overflow
 - Options: trampoline in `call_callable`, or explicit continuation passing
 - Intentionally deferred — only needed if large recursion depths become a use case
-- The Importance of this is closely related to Loops  
 
 ### Enforce immutability at runtime (MUST LATER)
 - `DeclStmt` already carries `is_mutable` flag but the interpreter does not enforce it
@@ -62,7 +68,7 @@ VO has no reserved words and symbol-only syntax, making it uniquely suited to fu
 
 **Layer 1 — Configurable symbol table (lexer)**
 - Move operator mappings out of the hardcoded lexer into an external table (JSON or similar)
-- Communities remap any canonical symbol to any UTF-8 glyph (e.g. `?` → `если`, `<-` → `≔`)
+- Communities remap any canonical symbol to any UTF-8 glyph (e.g. `?` → `если`, `:=` → `≔`)
 - Loaded at startup; falls back to built-in defaults if absent
 - Decide which symbols are fixed structural delimiters (braces, parens, comma) vs remappable
 

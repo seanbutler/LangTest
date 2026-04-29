@@ -147,58 +147,55 @@ print_list(sieve(range(2, 50)))
 VO has no reserved words, so any vocabulary can be introduced as a plain hash of
 callables. Two patterns:
 
-### 1 — Aliasing: a C-familiar vocabulary
+### 1 — Aliasing: logic and loop vocabulary libraries
 
-A hash whose members wrap VO primitives under familiar names. No language changes
-required; `c` is just a value.
+Two library hashes, each importable independently. No language changes required.
 
 ```
-c = {
-    not      = (x)                        { !x }
-    while    = (cond, body)               { ~{ ? !cond() { \ }  body() } }
-    do_while = (body, cond)               { ~{ body()  ? !cond() { \ } } }
+// lib/logic.vo
+logic = {
+    not = (x)    { !x }
+    and = (a, b) { ? a() { b() } { 0 } }
+    or  = (a, b) { ? a() { 1 }  { b() } }
+}
+
+// lib/loops.vo
+loops = {
+    while    = (cond, body) { ~{ ? !cond() { \ }  body() } }
+    do_while = (body, cond) { ~{ body()  ? !cond() { \ } } }
     for      = (lo : int, hi : int, body) {
         i : int := lo
         ~{ ? i >= hi { \ }  body(i)  i := i + 1 }
     }
 }
 
-// use via member access
+@ "lib/logic.vo"
+@ "lib/loops.vo"
+
+? logic.not(0) { printf_s("%s\n", "not(0) is true") }
+? logic.and(() { 1 }, () { 1 }) { printf_s("%s\n", "1 and 1") }
+
 i : int := 1
-c.while(() { i <= 5 }, () { printf_i("%d\n", i)  i := i + 1 })
+loops.while(() { i <= 5 }, () { printf_i("%d\n", i)  i := i + 1 })
 
 total : int := 0
-c.for(1, 11, (n : int) { total := total + n })
+loops.for(1, 11, (n : int) { total := total + n })
 printf_i("sum 1..10 = %d\n", total)    // 55
 ```
 
 ### 2 — New syntax: for loops as library callables
 
-Higher-level loop forms are built on `~{ }` and exposed as plain functions.
-Importing the file is all that's needed to use them.
+`lib/loops.vo` provides ascending, stepping, and descending for loops built on `~{ }`.
 
 ```
-for_range = (lo : int, hi : int, body) {
-    i : int := lo
-    ~{ ? i >= hi { \ }  body(i)  i := i + 1 }
-}
+@ "lib/loops.vo"
 
-for_step = (lo : int, hi : int, step : int, body) {
-    i : int := lo
-    ~{ ? i >= hi { \ }  body(i)  i := i + step }
-}
-
-for_down = (lo : int, hi : int, body) {
-    i : int := hi - 1
-    ~{ ? i < lo { \ }  body(i)  i := i - 1 }
-}
-
-for_range(1, 6,  (i : int) { printf_i("%d\n", i) })       // 1 2 3 4 5
-for_step(0, 11, 2, (i : int) { printf_i("%d\n", i) })     // 0 2 4 6 8 10
-for_down(1, 6,  (i : int) { printf_i("%d\n", i) })        // 5 4 3 2 1
+loops.for(1, 6, (i : int) { printf_i("%d\n", i) })              // 1 2 3 4 5
+loops.for_step(0, 11, 2, (i : int) { printf_i("%d\n", i) })     // 0 2 4 6 8 10
+loops.for_down(1, 6, (i : int) { printf_i("%d\n", i) })         // 5 4 3 2 1
 ```
 
-Full source: `interp/alias.vo`, `interp/for_loop.vo`
+Full source: `interp/alias.vo`
 
 ## Source files
 
@@ -212,8 +209,9 @@ Full source: `interp/alias.vo`, `interp/for_loop.vo`
 | `interp/lib/cstdio.vo` | C stdio descriptor library |
 | `interp/lib/cstdlib.vo` | C stdlib descriptor library |
 | `interp/lib/ffi.vo` | FFI helper (`bind_one`, `bind_lib`) |
-| `interp/alias.vo` | Example: C-vocabulary hash aliasing VO primitives |
-| `interp/for_loop.vo` | Example: `for_range`, `for_step`, `for_down` as library callables |
+| `interp/lib/logic.vo` | `logic` hash — `not`, `and`, `or` (lazy boolean) |
+| `interp/lib/loops.vo` | `loops` hash — `while`, `do_while`, `for`, `for_step`, `for_down` |
+| `interp/alias.vo` | Example: using `logic` and `loops` together |
 
 ## Related languages
 
@@ -243,14 +241,14 @@ Blocks return their last value; there is no `return` keyword.
 | **Haskell** | Everything is an expression; `<-` used for monadic binding |
 | **MoonScript** | Implicit returns, compiles to Lua |
 
-### `:=` assignment operator
+### `:=` mutable assignment operator
 
 | Language | Relationship |
 |----------|-------------|
-| **R** | `<-` is the primary assignment operator |
-| **Haskell** | `<-` for do-notation / monadic bind |
-| **Scala** | `<-` in for-comprehensions |
-| **APL / K** | `←` for assignment — the Unicode ancestor |
+| **Pascal / Ada** | `:=` is the assignment operator; `=` is comparison — the direct origin of VO's `:=` |
+| **Go** | `:=` for short variable declaration with inferred type |
+| **Algol** | The original source of `:=` as assignment |
+| **Modula-2 / Oberon** | `:=` for assignment throughout |
 
 ### Type annotation syntax `name : type`
 
@@ -289,3 +287,4 @@ VO's `$$` takes a hash descriptor — the binding spec is itself a first-class v
 | **Wren** | Foreign method binding via descriptors |
 | **Python ctypes** | Spec-as-data approach to C binding |
 | **Zig** | `@cImport` — compiler-level C interop via declarations |
+

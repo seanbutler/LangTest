@@ -1,0 +1,38 @@
+@ "lib/logic.vo"
+@ "tests/color.vo"
+
+ok : int := 1
+
+// not: falsy input
+? logic.not(0) == 1 { } { ok := 0 }
+
+// not: truthy input
+? logic.not(1) == 0 { } { ok := 0 }
+
+// not: non-zero is truthy
+? logic.not(42) == 0 { } { ok := 0 }
+
+// and: both true
+? logic.and(() { 1 }, () { 1 }) == 1 { } { ok := 0 }
+
+// and: first false — short-circuit, second not called
+second_called : int := 0
+logic.and(() { 0 }, () { second_called := 1  1 })
+? second_called == 0 { } { ok := 0 }
+
+// and: first true, second false
+? logic.and(() { 1 }, () { 0 }) == 0 { } { ok := 0 }
+
+// or: first true — short-circuit, second not called
+or_second_called : int := 0
+logic.or(() { 1 }, () { or_second_called := 1  0 })
+? or_second_called == 0 { } { ok := 0 }
+
+// or: first false, second true
+? logic.or(() { 0 }, () { 1 }) == 1 { } { ok := 0 }
+
+// or: both false
+? logic.or(() { 0 }, () { 0 }) == 0 { } { ok := 0 }
+
+logic_test_ok = ok
+report_test("logic", logic_test_ok)
