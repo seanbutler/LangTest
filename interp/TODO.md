@@ -79,6 +79,54 @@ term.show_cursor()
 term.restore_mode()
 ```
 
+### `lib/term.vo` — XY and colour interface
+
+VO-side API exposed by `term` hash once the shim is built:
+
+| Call | Effect |
+|------|--------|
+| `term.clear()` | clear screen, cursor to 0,0 |
+| `term.goto(x, y)` | move cursor to column x, row y |
+| `term.color(n)` | set foreground colour 0=black 1=red 2=green 3=yellow 4=blue 5=magenta 6=cyan 7=white |
+| `term.bg(n)` | set background colour (same 0-7 palette) |
+| `term.reset()` | reset fg+bg to terminal default |
+| `term.hide_cursor()` | hide cursor for clean animation |
+| `term.show_cursor()` | restore cursor on exit |
+| `term.raw_mode()` | enable non-blocking single-char input |
+| `term.restore_mode()` | restore normal terminal input on exit |
+| `term.getch()` | returns keycode int or -1 if no key pressed |
+
+Colour convenience names (plain VO bindings in `lib/term.vo`):
+```
+term.BLACK=0  term.RED=1    term.GREEN=2  term.YELLOW=3
+term.BLUE=4   term.MAGENTA=5 term.CYAN=6  term.WHITE=7
+```
+
+Example — draw a coloured character at a position:
+```
+@ "lib/term.vo"
+
+term.goto(10, 5)
+term.color(term.RED)
+printf_s("%s", "@")
+term.reset()
+```
+
+Example — fill a box:
+```
+fill_box = (x : int, y : int, w : int, h : int, col : int, ch : string) {
+    term.color(col)
+    row : int := 0
+    loops.for(0, h, (row : int) {
+        loops.for(0, w, (c : int) {
+            term.goto(x + c, y + row)
+            printf_s("%s", ch)
+        })
+    })
+    term.reset()
+}
+```
+
 ### SDL3 binding via C shim
 
 Goal: open a window, run a game loop, draw, handle input — all from VO with no struct exposure.
