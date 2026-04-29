@@ -22,8 +22,145 @@
 ```
 ~{ ? !cond { \ }  body }     // while
 ~{ body  ? !cond { \ } }     // do-while
-~{ body }                     // infinite
+~{ body }                    // infinite
 ```
+
+### null alias for `{}`
+- `{}` is already the language's null/empty sentinel — used wherever "nothing" is needed
+- Add a stdlib binding so users can write `null` instead of `{}`
+- Simplest implementation: one line in `lib/stdlib.vo` — `null = {}`
+- No language changes required; `null` is just an identifier bound to the empty hash
+- FFI pointer dispatcher should treat empty hash as `NULL` (i.e. `nullptr`) — relevant for SDL3 and any C library that takes optional pointer arguments
+
+### Terminal graphics via ANSI escape codes
+
+Goal: cursor-addressed terminal output and non-blocking keyboard input — enough for snake, roguelikes, text UI. No curses/ncurses dependency.
+
+**Step 1 — FFI extension (interpreter.cpp)**
+- Add `"void"` return type — returns `Value::nil()`
+- This is the only FFI change needed; no pointer type required
+
+**Step 2 — C shim (`interp/term/voterm.c`, compiled to `libvoterm.so`)**
+```c
+void vo_clear()            // \033[2J\033[H — clear screen
+void vo_goto(int x, int y) // \033[y;xH    — position cursor
+void vo_color(int fg)      // \033[3Xm      — set foreground colour (0-7)
+void vo_reset()            // \033[0m       — reset colours
+void vo_hide_cursor()      // \033[?25l
+void vo_show_cursor()      // \033[?25h
+void vo_raw_mode()         // tcsetattr — non-blocking single-char input
+void vo_restore_mode()     // tcsetattr — restore terminal on exit
+int  vo_getch()            // read(0,&c,1) — returns char or -1 if no key
+```
+
+**Step 3 — VO descriptor (`interp/lib/term.vo`)**
+- Descriptor hash + `bind_lib` call
+- Exposes `term` hash with all shim functions bound
+
+**Result — minimal terminal game loop:**
+```
+@ "lib/term.vo"
+
+term.raw_mode()
+term.hide_cursor()
+~{
+    k = term.getch()
+    ? k == 119 { dy := -1 }    // w
+    ? k == 115 { dy :=  1 }    // s
+    ? k == 97  { dx := -1 }    // a
+    ? k == 100 { dx :=  1 }    // d
+    ? k == 113 { \ }           // q — quit
+    // update, draw...
+    term.clear()
+    term.goto(x, y)
+    printf_s("%s", "O")
+}
+term.show_cursor()
+term.restore_mode()
+```
+
+### SDL3 binding via C shim
+
+Goal: open a window, run a game loop, draw, handle input — all from VO with no struct exposure.
+
+**Step 1 — FFI extensions (interpreter.cpp)**
+- Add `"pointer"` param/return type — stored as `int64_t`, cast to/from `void*`
+- Add `"void"` return type — returns `Value::nil()`
+- Extend `bind_foreign_function()` dispatch to handle `pointer` in any parameter position
+- Empty hash `{}` (or `null` once aliased) passed as a `"pointer"` argument maps to `nullptr`
+
+**Step 2 — C shim (`interp/sdl/vosdl.c`, compiled to `libvosdl.so`)**
+
+Structs fall into two categories — the shim handles both transparently:
+
+*Opaque handles* (`SDL_Window*`, `SDL_Renderer*`, `SDL_Texture*`) — heap-managed by SDL.
+Shim provides thin create/destroy pairs; handles cross the boundary as `int64_t` pointers:
+```c
+void* vo_create_window(const char* t, int w, int h) {
+    SDL_Init(SDL_INIT_VIDEO);
+    return SDL_CreateWindow(t, w, h, 0);
+}
+void vo_destroy_window(void* win) { SDL_DestroyWindow(win); }
+```
+
+*Value structs* (`SDL_FRect`, `SDL_Color`, `SDL_Point`) — stack-allocated, no teardown.
+Shim takes individual scalars, builds the struct internally, calls SDL, discards it:
+```c
+void vo_fill_rect(void* ren, int x, int y, int w, int h) {
+    SDL_FRect r = { x, y, w, h };
+    SDL_RenderFillRect(ren, &r);
+}
+```
+
+VO side uses a hash as the struct; wrapper callables unpack fields at the call site:
+```
+rect = { x:int=0  y:int=0  w:int=0  h:int=0
+         ()=(px:int,py:int,pw:int,ph:int){ self.x:=px self.y:=py self.w:=pw self.h:=ph } }
+
+fill_rect = (ren, r) { SDL.fill_rect(ren, r.x, r.y, r.w, r.h) }
+```
+
+Full shim API:
+- `vo_create_window(title, w, h)` → pointer — SDL_Init + SDL_CreateWindow
+- `vo_create_renderer(win)` → pointer — SDL_CreateRenderer(win, NULL)
+- `vo_destroy_window(win)`, `vo_destroy_renderer(ren)` — cleanup
+- `vo_pump()` — drains SDL_Event queue, updates internal state
+- `vo_quit()` — 1 if quit event received
+- `vo_key(scancode)` — 1 if key currently held
+- `vo_mouse_x()`, `vo_mouse_y()` — current cursor position
+- `vo_set_draw_color(ren, r, g, b, a)` — set render colour
+- `vo_clear(ren)`, `vo_present(ren)` — frame rendering
+- `vo_fill_rect(ren, x, y, w, h)` — draw filled rectangle
+- `vo_delay(ms)` — frame timing
+
+**Step 3 — VO descriptor (`interp/lib/vosdl.vo`)**
+- Descriptor hash + `bind_lib` call
+- Exposes `SDL` hash with all shim functions bound
+
+**Result — minimal VO game loop:**
+```
+@ "lib/vosdl.vo"
+
+win = SDL.create_window("hello", 800, 600, null)
+ren = SDL.create_renderer(win, null)
+~{
+    SDL.pump()
+    ? SDL.quit()    { \ }
+    ? SDL.key(41)   { \ }    // escape
+    SDL.draw_color(ren, 0, 0, 0, 255)
+    SDL.clear(ren)
+    SDL.present(ren)
+    SDL.delay(16)
+}
+SDL.destroy_renderer(ren)
+SDL.destroy_window(win)
+```
+
+**Deferred — needs struct marshalling to add later:**
+- `SDL_Texture` / sprite rendering
+- `SDL_Rect` for clipping
+- Full keyboard event stream (not just current state)
+- Audio (`SDL_audio`)
 
 ### Bare block `{ }` as zero-arg callable (COULD LATER)
 - A `{ body }` in expression position with no leading param list is sugar for `() { body }`
@@ -99,3 +236,5 @@ VO has no reserved words and symbol-only syntax, making it uniquely suited to fu
 - Remove dynamic-cast chains once all nodes dispatch through visitors
 - Goal: clearer extension path and stronger compile-time coverage when adding AST nodes
 - Intentionally deferred until feature set is more stable
+
+
