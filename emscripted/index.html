@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VO Playground</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid #1e2530;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  header h1 { font-size: 1.4rem; font-weight: 700; color: #7dd3fc; }
+  header p  { font-size: 0.875rem; color: #64748b; }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .panel-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 0.4rem;
+  }
+
+  .editor-wrap { display: flex; flex-direction: column; }
+  .output-wrap { display: flex; flex-direction: column; }
+
+  textarea, pre {
+    flex: 1;
+    background: #141920;
+    border: 1px solid #1e2d3d;
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+    resize: none;
+    outline: none;
+    tab-size: 4;
+    min-height: 400px;
+  }
+
+  textarea:focus { border-color: #3b82f6; }
+
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+    color: #64748b;
+  }
+  pre.has-output { color: #e2e8f0; }
+  pre.has-error  { color: #f87171; }
+
+  .controls {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  button {
+    padding: 0.5rem 1.5rem;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button:hover    { background: #2563eb; }
+  button:active   { background: #1d4ed8; }
+  button:disabled { background: #334155; color: #64748b; cursor: default; }
+
+  #status { font-size: 0.8rem; color: #64748b; }
+  #status.error { color: #f87171; }
+
+  @media (max-width: 700px) {
+    main { grid-template-columns: 1fr; }
+    .controls { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>VO</h1>
+  <p>A minimal, expression-oriented language — hash as universal primitive</p>
+</header>
+
+<main>
+  <div class="controls">
+    <button id="run-btn" disabled>Run</button>
+    <span id="status">Loading…</span>
+  </div>
+
+  <div class="editor-wrap">
+    <div class="panel-label">Source</div>
+    <textarea id="editor" spellcheck="false">@ "lib/stdio.vo"
+@ "lib/stdlib.vo"
+
+// ----- prototype OOP -----
+
+Animal = {
+    sound : string = "..."
+    speak  = () { printf_s("%s\n", self.sound) }
+    () = (s : string) { self.sound := s }
+}
+
+Dog = subtype(Animal, { sound : string = "Woof" })
+
+Cat = subtype(Animal, {
+    sound : string = "Meow"
+    speak  = () { printf_s("Cat says: %s\n", self.sound) }
+})
+
+Animal("Grunt").speak()
+Dog("Rex").speak()
+Cat("Whiskers").speak()
+
+// ----- private state -----
+
+Counter = {
+    _count : int = 0
+    inc    = () { self._count := self._count + 1 }
+    value  = () { self._count }
+}
+
+c = Counter()
+c.inc()  c.inc()  c.inc()
+printf_i("count = %d\n", c.value())
+
+// ----- sieve -----
+
+empty = { is_empty : int = 1 }
+Node = {
+    is_empty : int = 0
+    value    : int = 0
+    next           = empty
+    () = (v : int, n) { self.value := v  self.next := n }
+}
+range  = (lo : int, hi : int) {
+    ? lo > hi { empty } { Node(lo, range(lo + 1, hi)) }
+}
+filter = (list, pred) {
+    ? list.is_empty { empty } {
+        ? pred(list.value) {
+            Node(list.value, filter(list.next, pred))
+        } {
+            filter(list.next, pred)
+        }
+    }
+}
+sieve = (list) {
+    ? list.is_empty { empty } {
+        p : int = list.value
+        Node(p, sieve(filter(list.next, (n : int) { n % p != 0 })))
+    }
+}
+print_list = (list) {
+    ? list.is_empty { } {
+        printf_i("%d\n", list.value)
+        print_list(list.next)
+    }
+}
+print_list(sieve(range(2, 30)))
+</textarea>
+  </div>
+
+  <div class="output-wrap">
+    <div class="panel-label">Output</div>
+    <pre id="output">— output will appear here —</pre>
+  </div>
+</main>
+
+<script>
+  var btn    = document.getElementById('run-btn');
+  var status = document.getElementById('status');
+  var output = document.getElementById('output');
+  var editor = document.getElementById('editor');
+
+  // Catch any uncaught JS error and surface it in the status bar.
+  window.onerror = function(msg, src, line) {
+    status.textContent = 'JS error: ' + msg + ' (' + src + ':' + line + ')';
+    status.className = 'error';
+    return false;
+  };
+
+  var Module = {
+    // vo.js is in build/ but index.html is one level up, so Emscripten
+    // resolves vo.data relative to the page URL and gets a 404.
+    // locateFile redirects all asset lookups back into build/.
+    locateFile: function(path) { return 'build/' + path; },
+
+    // Let Emscripten's own init messages go to the browser console so we
+    // can see them in DevTools if something goes wrong.
+    print:    function(text) { console.log('[vo]', text); },
+    printErr: function(text) { console.warn('[vo:err]', text); },
+
+    onAbort: function(reason) {
+      status.textContent = 'WASM aborted: ' + reason;
+      status.className = 'error';
+    },
+
+    onRuntimeInitialized: function() {
+      try {
+        // Verify the export is reachable before enabling the UI.
+        if (typeof Module._run_vo !== 'function') {
+          throw new Error('_run_vo not exported — check EXPORTED_FUNCTIONS in CMakeLists.txt');
+        }
+
+        btn.disabled = false;
+        status.textContent = 'Ready  (Ctrl+Enter to run)';
+
+        btn.addEventListener('click', runCode);
+        editor.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            runCode();
+          }
+        });
+
+      } catch(e) {
+        status.textContent = 'Init error: ' + e.message;
+        status.className = 'error';
+        console.error(e);
+      }
+    }
+  };
+
+  function runCode() {
+    var src    = editor.value;
+    var lines  = [];
+    var saved  = Module.print;
+
+    // Capture all stdout lines emitted by run_vo into `lines`.
+    Module.print = function(text) { lines.push(text); };
+    try {
+      Module.ccall('run_vo', null, ['string'], [src]);
+    } catch(e) {
+      var msg = e instanceof Error ? e.message
+              : typeof e === 'number' ? 'WASM exception (ptr ' + e + ')'
+              : String(e);
+      lines.push('Error: ' + msg);
+    } finally {
+      Module.print = saved;
+    }
+
+    var result = lines.join('\n');
+    output.textContent = result || '(no output)';
+    output.className   = (result && result.startsWith('Error:')) ? 'has-error' : 'has-output';
+  }
+</script>
+<script src="build/vo.js"></script>
+
+</body>
+</html>

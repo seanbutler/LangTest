@@ -1,0 +1,3 @@
+// Web build: printf_s and printf_i are native builtins — no FFI needed.
+// This file intentionally left empty so that @ "lib/stdio.vo" is a no-op
+// and the builtins registered at interpreter startup remain in effect.

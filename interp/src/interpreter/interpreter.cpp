@@ -103,6 +103,36 @@ Interpreter::Interpreter(bool verbose)
 }
 
 void Interpreter::register_builtins() {
+    // printf_s / printf_i — always available as native builtins.
+    // On native builds @ "lib/stdio.vo" overwrites these with identical FFI versions.
+    // On WASM (where dlopen is unavailable) these remain as the sole implementation.
+    // Output goes to std::cout so web_main.cpp can redirect it to a JS string.
+
+    auto ps = std::make_shared<NativeCallable>();
+    ps->name = "printf_s";
+    ps->invoke = [](const std::vector<ValuePtr>& args) -> ValuePtr {
+        if (args.size() != 2 || !args[0]->is_string() || !args[1]->is_string())
+            throw RuntimeError("printf_s expects (fmt: string, value: string)");
+        char buf[4096];
+        std::snprintf(buf, sizeof(buf), args[0]->as_string().c_str(),
+                      args[1]->as_string().c_str());
+        std::cout << buf;
+        return Value::nil();
+    };
+    globals_->define("printf_s", Value::from(ps));
+
+    auto pi = std::make_shared<NativeCallable>();
+    pi->name = "printf_i";
+    pi->invoke = [](const std::vector<ValuePtr>& args) -> ValuePtr {
+        if (args.size() != 2 || !args[0]->is_string() || !args[1]->is_int())
+            throw RuntimeError("printf_i expects (fmt: string, value: int)");
+        char buf[256];
+        std::snprintf(buf, sizeof(buf), args[0]->as_string().c_str(),
+                      static_cast<int>(args[1]->as_int()));
+        std::cout << buf;
+        return Value::nil();
+    };
+    globals_->define("printf_i", Value::from(pi));
 }
 
 // --- program entry --------------------------------------------------------------
@@ -459,6 +489,10 @@ ValuePtr Interpreter::call_value(ValuePtr callee,
 }
 
 ValuePtr Interpreter::bind_foreign_function(ValuePtr spec) {
+#ifdef __EMSCRIPTEN__
+    (void)spec;
+    throw RuntimeError("FFI ($$) is not available in the web build");
+#else
     if (!spec->is_hash())
         throw RuntimeError("$$ expects a hash spec");
 
@@ -573,6 +607,7 @@ ValuePtr Interpreter::bind_foreign_function(ValuePtr spec) {
     }
 
     return Value::from(native);
+#endif // __EMSCRIPTEN__
 }
 
 ValuePtr Interpreter::call_callable(const Callable& fn,

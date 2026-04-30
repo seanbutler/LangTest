@@ -10,7 +10,7 @@ e.g. (COULD, SOONER, SMALL, LARGE)
 - MUST, COULD (from MOSCOW)
 - SOONER, LATER simplest possible time priority
 - LOW, HIGH  cost
-- SMALL, LARGE benefit
+- LIMITED, BROAD benefit
 
 This gives us a shorthand to record opinions about this feature useful in ordering and prioriting work.
 - **important:** because it matches our goals
@@ -19,21 +19,12 @@ This gives us a shorthand to record opinions about this feature useful in orderi
 - **benefit:** are the outcomes extensive from this todo item? either its a big feature, or popular feature or maybe almost nobody will use it
 
 
-### Interpreter / Execution 
-- Shorten Overall Code Length - Seems Excessive for a Small Language
+## DONE
 
-
-### Execution Efficiency
- - Execution Speed Benchmark Framework
- - Execution Memory Metrics Report
- - AST Visualisation
- - Memory Visualisation
- 
-
-### Loop syntax — DONE
-- `~{ body }` — infinite loop block; repeats until `\` is executed
-- `\` — break/escape; lexically scoped to enclosing `~{ }`, parse-time enforced
-- `!` — logical NOT (prefix unary); `!x`, `!!(x)` etc.
+### Loop syntax - DONE
+- `~{ body }` - infinite loop block; repeats until `\` is executed
+- `\` - break/escape; lexically scoped to enclosing `~{ }`, parse-time enforced
+- `!` - logical NOT (prefix unary); `!x`, `!!(x)` etc.
 - `\` inside a callable defined inside `~{ }` is a parse error (loop_depth_ reset on callable entry)
 - `BreakSignal` C++ exception thrown by `\`, caught at `~{ }` boundary (mirrors `ReturnSignal`)
 
@@ -43,7 +34,7 @@ This gives us a shorthand to record opinions about this feature useful in orderi
 ~{ body }                    // infinite
 ```
 
-### OOP — inheritance and private slots — DONE
+### OOP — inheritance and private slots - DONE
 
 **`_` delegation (interpreter)**
 - `HashInstance::get` walks the `_` slot as a prototype chain before throwing
@@ -56,6 +47,7 @@ This gives us a shorthand to record opinions about this feature useful in orderi
 - Directly accessible by name: `obj._thing` works as normal
 - `merge`, `clone`, and all stdlib functions built on `>>` naturally exclude private slots
 - The `_` delegation slot is itself private under this rule — no special case needed
+- Maybe these are system slots rather than private slots, privacy is a client programmer idea
 
 **`subtype` (lib/stdlib.vo)**
 - `subtype(parent, overrides)` — merges public slots, sets `_ = parent`, returns child hash
@@ -77,14 +69,28 @@ p.speak()             // method inherited from Animal
 
 
 
-### null alias for `{}`  (COULD, SOONER, SMALL, SMALL)
+## PENDING
+
+### Interpreter / Execution (COULD, LATER, HIGH, LIMITED)
+- Shorten Overall Code Length - Seems Excessive for a Small Language
+
+
+### Execution Efficiency (MUST, LATER, HIGH, BROAD)
+ - Execution Speed Benchmark Framework
+ - Execution Memory Metrics Report
+ - AST Visualisation
+ - Memory Visualisation
+ 
+
+
+### null alias for `{}` - (COULD, SOONER, LOW, LIMITED)
 - `{}` is already the language's null/empty sentinel — used wherever "nothing" is needed
 - Add a stdlib binding so users can write `null` instead of `{}`
 - Simplest implementation: one line in `lib/stdlib.vo` — `null = {}`
 - No language changes required; `null` is just an identifier bound to the empty hash
 - FFI pointer dispatcher should treat empty hash as `NULL` (i.e. `nullptr`) — relevant for SDL3 and any C library that takes optional pointer arguments
 
-### Bare block `{ }` as zero-arg callable (COULD, LATER, SMALL, SMALL)
+### Bare block `{ }` as zero-arg callable - (COULD, LATER, LOW, LIMITED)
 - A syntax change that potentially breaks backward compatability
 - A `{ body }` in expression position with no leading param list is sugar for `() { body }`
 - Makes `func_name = { code }` a callable, invoked as `func_name()`
@@ -92,7 +98,7 @@ p.speak()             // method inherited from Animal
 
 
 
-### Terminal graphics via ANSI escape codes (COULD, SOONER, SMALL, LARGE)
+### Basic Generic Terminal graphics via ANSI escape codes (COULD, SOONER, LOW, BROAD)
 
 Goal: cursor-addressed terminal output and non-blocking keyboard input — enough for snake, roguelikes, text UI. No curses/ncurses dependency.
 
@@ -187,7 +193,7 @@ fill_box = (x : int, y : int, w : int, h : int, col : int, ch : string) {
 }
 ```
 
-### SDL3 binding via C shim
+### SDL3 binding via C shim - (COULD, LATER, HIGH, BROAD)
 
 Goal: open a window, run a game loop, draw, handle input — all from VO with no struct exposure.
 
@@ -271,14 +277,15 @@ SDL.destroy_window(win)
 - Audio (`SDL_audio`)
 
 
-### Lazy boolean operators `&` and `|` (MUST SOONER)
+
+### Lazy boolean operators `&` and `|` (MUST SOONER LOW BROAD)
 - Add `&` (logical AND) and `|` (logical OR) as proper infix operators
 - `a & b` desugars to `? a { b } { 0 }` — short-circuits, no call-frame overhead
 - `a | b` desugars to `? a { 1 } { b }` — short-circuits
 - Precedence: `|` below `&`, both below `!`, above comparison
 - Replaces the `logic.and` / `logic.or` callable workaround for hot paths
 
-### Tail-call optimisation (TCO) (COULD  LATER)
+### Tail-call optimisation (TCO) (COULD LATER LOW LIMITED)
 - The interpreter currently uses the C++ call stack for recursion
 - Deep recursion (e.g. `range(1, 10000)`) will stack overflow
 - Options: trampoline in `call_callable`, or explicit continuation passing
@@ -332,7 +339,7 @@ VO has no reserved words and symbol-only syntax, making it uniquely suited to fu
 - Library options: mstch, kainjow/mustache, or std::format (C++20)
 
 
-### Visitor-style dispatch (refactor) (SHOULD LATER)
+### Visitor-style dispatch (refactor) (SHOULD LATER LOW )
 - Replace `dynamic_cast` chains in `Interpreter::eval` / `Interpreter::exec` with a proper visitor pattern
 - Introduce AST visitor interfaces for expressions and statements
 - Add `accept(...)` methods to all AST node types
